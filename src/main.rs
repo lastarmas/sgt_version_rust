@@ -7,10 +7,8 @@ use std::collections::HashMap;
 
 mod models;
 mod handlers;
-mod database;
 
-use models::{Projet, Travail, Utilisateur, ChecklistItem};
-use handlers::{projet_handlers, travail_handlers, utilisateur_handlers};
+use models::{Projet, Travail, Utilisateur, StatutProjet, Priorite, TypeTravail, Application, Environnement, StatutTravail, Role};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -29,9 +27,9 @@ async fn main() -> std::io::Result<()> {
             .app_data(projets_data.clone())
             .app_data(travaux_data.clone())
             .app_data(utilisateurs_data.clone())
-            .configure(projet_handlers::config)
-            .configure(travail_handlers::config)
-            .configure(utilisateur_handlers::config)
+            .configure(handlers::projet_handlers::config)
+            .configure(handlers::travail_handlers::config)
+            .configure(handlers::utilisateur_handlers::config)
             .route("/health", web::get().to(health_check))
     })
     .bind("127.0.0.1:8080")?
@@ -61,7 +59,7 @@ fn init_mock_data(
         id: Uuid::new_v4(),
         nom: "Jean Dupont".to_string(),
         email: "jean.dupont@entreprise.com".to_string(),
-        role: models::Role::Manager,
+        role: Role::Manager,
         equipe: "Infrastructure".to_string(),
         actif: true,
     };
@@ -70,7 +68,7 @@ fn init_mock_data(
         id: Uuid::new_v4(),
         nom: "Marie Martin".to_string(),
         email: "marie.martin@entreprise.com".to_string(),
-        role: models::Role::Specialiste,
+        role: Role::Specialiste,
         equipe: "Base de données".to_string(),
         actif: true,
     };
@@ -86,8 +84,8 @@ fn init_mock_data(
         description: "Migration de la version 2.5 vers 3.0".to_string(),
         date_debut: Utc::now(),
         date_fin_prevue: Utc::now() + chrono::Duration::days(60),
-        statut: models::StatutProjet::EnCours,
-        priorite: models::Priorite::Haute,
+        statut: StatutProjet::EnCours,
+        priorite: Priorite::Haute,
     };
 
     let projet2 = Projet {
@@ -97,8 +95,8 @@ fn init_mock_data(
         description: "Augmentation des capacités serveurs".to_string(),
         date_debut: Utc::now() + chrono::Duration::days(5),
         date_fin_prevue: Utc::now() + chrono::Duration::days(45),
-        statut: models::StatutProjet::Planifie,
-        priorite: models::Priorite::Moyenne,
+        statut: StatutProjet::Planifie,
+        priorite: Priorite::Moyenne,
     };
 
     projets_map.insert(projet1.id, projet1.clone());
@@ -108,13 +106,13 @@ fn init_mock_data(
     let travail1 = Travail {
         id: Uuid::new_v4(),
         projet_id: projet1.id,
-        type_travail: models::TypeTravail::Migration,
-        application: models::Application::EspressoGfr,
-        environnement: models::Environnement::Production,
+        type_travail: TypeTravail::Migration,
+        application: Application::EspressoGfr,
+        environnement: Environnement::Production,
         description: "Migration base de données".to_string(),
         date_debut: Utc::now(),
         date_fin_prevue: Utc::now() + chrono::Duration::days(5),
-        statut: models::StatutTravail::EnCours,
+        statut: StatutTravail::EnCours,
         responsable: user2.id,
         equipe: vec![user1.id, user2.id],
     };
